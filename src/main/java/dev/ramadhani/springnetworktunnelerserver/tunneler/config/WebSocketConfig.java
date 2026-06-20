@@ -3,6 +3,7 @@ package dev.ramadhani.springnetworktunnelerserver.tunneler.config;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+import org.springframework.boot.task.ThreadPoolTaskSchedulerBuilder;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -12,11 +13,16 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
+import org.springframework.scheduling.SchedulingTaskExecutor;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
 import java.util.UUID;
+import java.util.concurrent.Executors;
 
 @Configuration
 @EnableWebSocketMessageBroker
@@ -30,7 +36,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.enableSimpleBroker("/topic")
-                .setHeartbeatValue(new long[]{5000L, 5000L});
+                .setHeartbeatValue(new long[]{5000L, 5000L})
+                .setTaskScheduler(new ThreadPoolTaskSchedulerBuilder().poolSize(4).build());
         registry.setApplicationDestinationPrefixes("/app");
     }
 
@@ -51,7 +58,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                             accessor.setDestination(destination);
                             accessor.setSubscriptionId(uuid);
                         } else if(StompCommand.SEND.equals(accessor.getCommand())) {
-                            return null;
+                            //TODO: for sending response
                         }
                         return ChannelInterceptor.super.preSend(message, channel);
                     }

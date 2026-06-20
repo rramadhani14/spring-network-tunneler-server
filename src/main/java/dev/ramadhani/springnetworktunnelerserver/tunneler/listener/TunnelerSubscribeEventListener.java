@@ -9,6 +9,8 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 
+import java.util.HashMap;
+
 @Component
 @AllArgsConstructor
 public class TunnelerSubscribeEventListener {
@@ -21,6 +23,8 @@ public class TunnelerSubscribeEventListener {
         String destination = accessor.getDestination();
         if(destination == null) return;
         String path = destination.replace("/topic/", "");
-        simpMessagingTemplate.convertAndSend(destination, new SubscribedMessage(path, null));
+        Object portObj = accessor.getHeader("port");
+        if(!(portObj instanceof Integer)) return;
+        simpMessagingTemplate.convertAndSend(destination, new SubscribedMessage(path, (Integer) portObj, new HashMap<>()));
     }
 }
